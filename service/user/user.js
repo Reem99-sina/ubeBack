@@ -9,7 +9,7 @@ const vonage = new Vonage({
 }
  const sendOtp=async(req,res)=>{
     const RandomNumber=Math.ceil(Math.random()*1000)
-    await vonage.sms.send({to:req.params.to, from:req.params.from, text:`${req.params.text}  ${RandomNumber}`})
+    await vonage.sms.send({to:req.body.to, from:req.body.from, text:`${req.body.text}  ${RandomNumber}`})
     .then(resp => { res.status(200).json({message:'Message sent successfully'}) })
     .catch(err => { res.status(400).json({message:err}); });
     

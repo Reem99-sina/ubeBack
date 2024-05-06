@@ -28,7 +28,7 @@ const sendOtp = async (req, res) => {
       text: `${req.body.text}  ${RandomNumber}`,
     })
     .then((resp) => {
-      res.status(200).json({ message: "Message sent successfully" });
+      res.status(200).json({ message: "Message sent successfully",code:RandomNumber });
     })
     .catch((err) => {
       res.status(400).json({ message: err });

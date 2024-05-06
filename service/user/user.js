@@ -1,5 +1,6 @@
 const { Vonage } = require("@vonage/server-sdk");
 const { User } = require("../../module/user");
+const sendEmail = require("../../utils/sendEmail");
 
 const vonage = new Vonage({
   apiKey: "26e5cea4",
@@ -21,6 +22,7 @@ const getUser = async (req, res) => {
 };
 const sendOtp = async (req, res) => {
   const RandomNumber = Math.ceil(Math.random() * 1000);
+  const UserEmail = await User.findOne({ phoneNumber: req.body.to });
   await vonage.sms
     .send({
       to: req.body.to,
@@ -28,10 +30,17 @@ const sendOtp = async (req, res) => {
       text: `${req.body.text}  ${RandomNumber}`,
     })
     .then((resp) => {
-      res.status(200).json({ message: "Message sent successfully",code:RandomNumber });
+      res.status(200).json({ message: "Message sent successfully",code:RandomNumber,user:UserEmail });
     })
     .catch((err) => {
       res.status(400).json({ message: err });
     });
 };
-module.exports = { postUser, sendOtp, getUser };
+const getOtpEmail=async(req,res)=>{
+    const code = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000)
+    const message = `<p>the code i need is ${code}</p>`
+    await sendEmail(req.body.email, message)
+    res.status(200).json({ message: "done" });
+
+}
+module.exports = { postUser, sendOtp, getUser,getOtpEmail };

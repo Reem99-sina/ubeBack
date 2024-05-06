@@ -9,13 +9,13 @@ const postUser = async (req, res) => {};
 const getUser = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    res.status(400).json("need email to fetch user");
+    res.status(400).json({message:"need email to fetch user"});
   } else {
     const UserEmail = await User.findOne({ email: email });
     if (UserEmail) {
       res.status(200).json(UserEmail);
     } else {
-      res.status(400).json("user not found");
+      res.status(400).json({message:"user not found"});
     }
   }
 };

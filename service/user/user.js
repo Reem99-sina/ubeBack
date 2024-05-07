@@ -41,7 +41,7 @@ const getOtpEmail=async(req,res)=>{
     const message = `<p>the code i need is ${code}</p>`
     console.log(req.body.email,"req.body.email")
     await sendEmail(req.body.email, message)
-    res.status(200).json({ message: "done" });
+    res.status(200).json({ message: "done" ,code:code});
 
 }
 module.exports = { postUser, sendOtp, getUser,getOtpEmail };

@@ -39,6 +39,7 @@ const sendOtp = async (req, res) => {
 const getOtpEmail=async(req,res)=>{
     const code = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000)
     const message = `<p>the code i need is ${code}</p>`
+    console.log(req.body.email,"req.body.email")
     await sendEmail(req.body.email, message)
     res.status(200).json({ message: "done" });
 

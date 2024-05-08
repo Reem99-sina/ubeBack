@@ -6,7 +6,22 @@ const vonage = new Vonage({
   apiKey: "26e5cea4",
   apiSecret: "lHSFOmaaI2lCU6ZL",
 });
-const postUser = async (req, res) => {};
+const postUser = async (req, res) => {
+  const { email, name, phoneNumber } = req.body
+  if(!email){
+    res.status(400).json({message:"email is required"})
+  }
+  if(!name){
+    res.status(400).json({message:"name is required"})
+  }
+  if(!phoneNumber){
+    res.status(400).json({message:"phoneNumber is required"})
+  }
+  const newUser=await User.create(req.body).then((res)=>res.status(200)
+  .json({message:"done create user",user:newUser}))
+  .catch((error)=>res.status(400).json({message:`error server ${error}`}))
+
+};
 const getUser = async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -30,6 +45,7 @@ const sendOtp = async (req, res) => {
       text: `${req.body.text}  ${RandomNumber}`,
     })
     .then((resp) => {
+      console.log(resp);  
       res.status(200).json({ message: "Message sent successfully",code:RandomNumber,user:UserEmail });
     })
     .catch((err) => {
@@ -44,4 +60,5 @@ const getOtpEmail=async(req,res)=>{
     res.status(200).json({ message: "done" ,code:code});
 
 }
+
 module.exports = { postUser, sendOtp, getUser,getOtpEmail };

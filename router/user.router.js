@@ -2,7 +2,7 @@ const { postUser, sendOtp, getUser, getOtpEmail, updateUser } = require("../serv
 
 const router=require("express").Router()
 router.post("/",postUser)
-router.patch("/",updateUser)
+router.patch("/:email",updateUser)
 
 router.get("/",getUser)
 router.get("/OTPEmail",getOtpEmail)

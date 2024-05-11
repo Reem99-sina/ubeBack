@@ -10,7 +10,8 @@ activeStatus:String,
 role:String,
 driver_id:{type:mongoose.Types.ObjectId,ref:"user"},
 active_status:Boolean,
-currentLocation:{lat:String,long:String},
-destination:{lat:String,long:String}
+currentLocation:{lat:String,lng:String},
+destination:{lat:String,lng:String},
+time:String
 })
 module.exports.User = mongoose.model('user', userSchema);

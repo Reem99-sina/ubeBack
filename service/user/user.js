@@ -60,5 +60,15 @@ const getOtpEmail=async(req,res)=>{
     res.status(200).json({ message: "done" ,code:code});
 
 }
+const updateUser=async(req,res)=>{
+  const { email, currentLocation,destination, time} = req.body
+await User.findOneAndUpdate({email},{currentLocation,destination,time}).then((res)=>{
+  res.status(200).json(res);
 
-module.exports = { postUser, sendOtp, getUser,getOtpEmail };
+}).catch((error)=>{
+  res.status(400).json(error);
+
+})
+}
+
+module.exports = { postUser, sendOtp, getUser,getOtpEmail,updateUser };

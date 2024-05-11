@@ -7,7 +7,7 @@ const vonage = new Vonage({
   apiSecret: "lHSFOmaaI2lCU6ZL",
 });
 const postUser = async (req, res) => {
-  const { email, name, phoneNumber } = req.body;
+  const { email, name, phoneNumber,role } = req.body;
   if (!email) {
     res.status(400).json({ message: "email is required" });
   }
@@ -37,6 +37,16 @@ const getUser = async (req, res) => {
       res.status(400).json({ message: "user not found" });
     }
   }
+};
+const getUserDriver = async (req, res) => {
+ 
+    const UserEmail = await User.findOne({ role: "driver" });
+    if (UserEmail) {
+      res.status(200).json(UserEmail);
+    } else {
+      res.status(400).json({ message: "user not found" });
+    }
+  
 };
 const sendOtp = async (req, res) => {
   const RandomNumber = Math.ceil(Math.random() * 1000);
@@ -80,4 +90,4 @@ const updateUser = async (req, res) => {
    
 };
 
-module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser };
+module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver };

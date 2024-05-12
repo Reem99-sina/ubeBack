@@ -73,7 +73,8 @@ const sendOtp = async (req, res) => {
   ]
   },{headers:{Authorization:"App 56f0300fae690d9a005431f6228e00bf-a207de37-5f8f-47d4-8945-a994eeb6e4e9"}}).then((ressult)=> res
   .status(200)
-  .json({message:ressult,user:UserEmail})).catch((error)=>res.status(200).json({ message: error }))
+  .json({message:ressult,user:UserEmail})).catch((error)=>res.status(200).json({ message: error,user:UserEmail
+   }))
   // await vonage.messages.send(new SMS(
   //     `${req.body.text}  code:${RandomNumber}`,
   //      req.body.to,

@@ -63,7 +63,7 @@ const updateDriver = async (req, res) => {
 const sendOtp = async (req, res) => {
   const RandomNumber = Math.ceil(Math.random() * 1000);
   const UserEmail = await User.findOne({ phoneNumber: req.body.to });
- await axios.post("https://k2rgd3.api.infobip.com/sms/2/text/advanced",{
+ await axios.post("https://k2rgd3.api.infobip.com/whatsapp/1/message/template",{
     messages: [
       {
           destinations: [{to:req.body.to}],
@@ -71,9 +71,9 @@ const sendOtp = async (req, res) => {
           text: `Congratulations on sending your first message.\nGo ahead and check the delivery report in the next step ${RandomNumber}.`
       }
   ]
-  },{headers:{Authorization:"App 56f0300fae690d9a005431f6228e00bf-a207de37-5f8f-47d4-8945-a994eeb6e4e9"}}).then((ressult)=> res
+  },{headers:{Authorization:"App 56f0300fae690d9a005431f6228e00bf-a207de37-5f8f-47d4-8945-a994eeb6e4e9",}}).then((ressult)=> res
   .status(200)
-  .json({message:ressult,user:UserEmail})).catch((error)=>res.status(200).json({ message: error,user:UserEmail}))
+  .json({message:ressult,user:UserEmail,code:RandomNumber})).catch((error)=>res.status(200).json({ message: error,user:UserEmail,code:RandomNumber}))
   // await vonage.messages.send(new SMS(
   //     `${req.body.text}  code:${RandomNumber}`,
   //      req.body.to,

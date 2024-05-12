@@ -51,11 +51,11 @@ const getUserDriver = async (req, res) => {
 };
 const updateDriver = async (req, res) => {
  const {email,driver_id}=req.body
-  const UserEmail = await User.findOneAndUpdateA({ email: email },{driver_id:driver_id});
+  const UserEmail = await User.findOneAndUpdate({ email: email },{driver_id:driver_id});
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {
-    res.status(400).json({ message: "user not found" });
+    res.status(400).json({ message: "user not found",UserEmail });
   }
 
 };

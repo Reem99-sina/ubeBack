@@ -13,5 +13,5 @@ active_status:Boolean,
 currentLocation:{lat:String,lng:String},
 destination:{lat:String,lng:String},
 time:String
-})
+},{timestamps:true})
 module.exports.User = mongoose.model('user', userSchema);

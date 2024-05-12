@@ -1,10 +1,11 @@
 const { Vonage } = require("@vonage/server-sdk");
 const { User } = require("../../module/user");
 const sendEmail = require("../../utils/sendEmail");
+const { SMS } = require("@vonage/messages");
 
 const vonage = new Vonage({
-  apiKey: "26e5cea4",
-  apiSecret: "lHSFOmaaI2lCU6ZL",
+  apiKey: "9430c4d3",
+  apiSecret: "HP6wSNFF4UjOLu7G"
 });
 const postUser = async (req, res) => {
   const { email, name, phoneNumber,role } = req.body;
@@ -48,17 +49,26 @@ const getUserDriver = async (req, res) => {
     }
   
 };
+const updateDriver = async (req, res) => {
+ const {email,driver_id}=req.body
+  const UserEmail = await User.findOneAndUpdateA({ email: email },{driver_id:driver_id});
+  if (UserEmail) {
+    res.status(200).json(UserEmail);
+  } else {
+    res.status(400).json({ message: "user not found" });
+  }
+
+};
 const sendOtp = async (req, res) => {
   const RandomNumber = Math.ceil(Math.random() * 1000);
   const UserEmail = await User.findOne({ phoneNumber: req.body.to });
-  await vonage.sms
-    .send({
-      to: req.body.to,
-      from: req.body.from,
-      text: `${req.body.text}  ${RandomNumber}`,
-    })
+  await vonage.messages.send(new SMS(
+      `${req.body.text}  code:${RandomNumber}`,
+       req.body.to,
+       req.body.from
+    ))
     .then((resp) => {
-      console.log(resp);
+      console.log(resp,"resp");
       res
         .status(200)
         .json({
@@ -90,4 +100,4 @@ const updateUser = async (req, res) => {
    
 };
 
-module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver };
+module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver,updateDriver };

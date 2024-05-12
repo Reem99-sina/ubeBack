@@ -105,5 +105,16 @@ const updateUser = async (req, res) => {
       
    
 };
+const updateUserCredit = async (req, res) => {
+  const { email, creditCard, EXpDate, cvv } = req.body;
+  const result=await User.findOneAndUpdate({ email: email },{creditCard:creditCard,EXpDate:EXpDate,cvv:cvv})
+  if(result){
+    res.status(200).json(result);
+  }else{
+    res.status(400).json({message:"update user error"});
+  }
+      
+   
+};
 
-module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver,updateDriver };
+module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver,updateDriver,updateUserCredit };

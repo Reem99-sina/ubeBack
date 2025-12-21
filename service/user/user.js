@@ -6,19 +6,9 @@ const { default: axios } = require("axios");
 
 const vonage = new Vonage({
   apiKey: "9430c4d3",
-  apiSecret: "HP6wSNFF4UjOLu7G"
+  apiSecret: "HP6wSNFF4UjOLu7G",
 });
 const postUser = async (req, res) => {
-  const { email, name, phoneNumber,role } = req.body;
-  if (!email) {
-    res.status(400).json({ message: "email is required" });
-  }
-  if (!name) {
-    res.status(400).json({ message: "name is required" });
-  }
-  if (!phoneNumber) {
-    res.status(400).json({ message: "phoneNumber is required" });
-  }
   await User.create(req.body)
     .then((result) =>
       res.status(200).json({ message: "done create user", user: result })
@@ -41,52 +31,94 @@ const getUser = async (req, res) => {
   }
 };
 const getUserDriver = async (req, res) => {
- 
-    const UserEmail = await User.findOne({ role: "driver" });
-    if (UserEmail) {
-      res.status(200).json(UserEmail);
-    } else {
-      res.status(400).json({ message: "user not found" });
-    }
-  
-};
-const updateDriver = async (req, res) => {
- const {email,driver_id}=req.body
-  const UserEmail = await User.findOneAndUpdate({ email: email },{driver_id:driver_id});
+  const UserEmail = await User.findOne({ role: "driver" });
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {
-    res.status(400).json({ message: "user not found",UserEmail });
+    res.status(400).json({ message: "user not found" });
   }
-
+};
+const updateDriver = async (req, res) => {
+  const { email, driver_id } = req.body;
+  const UserEmail = await User.findOneAndUpdate(
+    { email: email },
+    { driver_id: driver_id }
+  );
+  if (UserEmail) {
+    res.status(200).json(UserEmail);
+  } else {
+    res.status(400).json({ message: "user not found", UserEmail });
+  }
 };
 const sendOtp = async (req, res) => {
-  const RandomNumber = Math.ceil(Math.random() * 1000);
-  const UserEmail = await User.findOne({ phoneNumber: req.body.to });
- await axios.post("https://k2rgd3.api.infobip.com/whatsapp/1/message/template",{
-    messages: [
-      {
-          destinations: [{to:req.body.to}],
-          from: "ServiceSMS",
-          text: `Congratulations on sending your first message.\nGo ahead and check the delivery report in the next step ${RandomNumber}.`
-      }
-  ]
-  },{headers:{Authorization:"App 56f0300fae690d9a005431f6228e00bf-a207de37-5f8f-47d4-8945-a994eeb6e4e9",}}).then((ressult)=> res
-  .status(200)
-  .json({message:ressult,user:UserEmail,code:RandomNumber})).catch((error)=>res.status(200).json({ message: error,user:UserEmail,code:RandomNumber}))
-  // await vonage.messages.send(new SMS(
-  //     `${req.body.text}  code:${RandomNumber}`,
-  //      req.body.to,
-  //      req.body.from
-  //   ))
-  //   .then((resp) => {
-  //     console.log(resp,"resp");
-     
-  //   })
-  //   .catch((err) => {
-  //     res.status(400).json({ message: err })
-  //   });
+  try {
+    console.log("Request Body:", process.env.INFOBIP_API_KEY);
+    const otp = Math.ceil(Math.random() * 1000);
+
+    const user = await User.findOne({ phoneNumber: req.body.to });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // const response = await axios.post(
+    //   "https://k2rgd3.api.infobip.com/whatsapp/1/message/text",
+    //   {
+    //     messages: [
+    //       {
+    //         from: "ServiceSMS",
+    //         destinations: [{ to: req.body.to }],
+    //         text: `Your verification code is: ${otp}`,
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     headers: {
+    //       Authorization: `App ${process.env.INFOBIP_API_KEY}`,
+    //       "Content-Type": "application/json",
+    //       Accept: "application/json",
+    //     },
+    //   }
+    // );
+    await vonage.sms
+      .send({
+        to: req.body.to,
+        from: "Vonage APIs",
+        text: `Your verification code is: ${otp}`,
+      })
+      .then((resp) => {
+        console.log("Message sent successfully");
+        console.log(resp);
+        return res.status(200).json({
+          success: true,
+          message: "OTP sent successfully",
+          code: otp,
+          user: {
+            id: user._id,
+            name: user.name,
+            phoneNumber: user.phoneNumber,
+          },
+        });
+      })
+      .catch((err) => {
+        console.log("There was an error sending the messages.");
+        console.error(err);
+        res.status(401).json({
+          success: false,
+          message: "Failed to send OTP",
+          error: err.response?.data || err.message,
+        });
+      });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Failed to send OTP",
+      error: error.response?.data || error.message,
+    });
+  }
 };
+
 const getOtpEmail = async (req, res) => {
   const code = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
   const message = `<p>the code i need is ${code}</p>`;
@@ -96,25 +128,36 @@ const getOtpEmail = async (req, res) => {
 };
 const updateUser = async (req, res) => {
   const { email, currentLocation, destination, time } = req.body;
-  const result=await User.findOneAndUpdate({ email: email },{currentLocation:currentLocation,destination:destination,time:time})
-  if(result){
+  const result = await User.findOneAndUpdate(
+    { email: email },
+    { currentLocation: currentLocation, destination: destination, time: time }
+  );
+  if (result) {
     res.status(200).json(result);
-  }else{
-    res.status(400).json({message:"update user error"});
+  } else {
+    res.status(400).json({ message: "update user error" });
   }
-      
-   
 };
 const updateUserCredit = async (req, res) => {
   const { email, creditCard, EXpDate, cvv } = req.body;
-  const result=await User.findOneAndUpdate({ email: email },{creditCard:creditCard,EXpDate:EXpDate,cvv:cvv})
-  if(result){
+  const result = await User.findOneAndUpdate(
+    { email: email },
+    { creditCard: creditCard, EXpDate: EXpDate, cvv: cvv }
+  );
+  if (result) {
     res.status(200).json(result);
-  }else{
-    res.status(400).json({message:"update user error"});
+  } else {
+    res.status(400).json({ message: "update user error" });
   }
-      
-   
 };
 
-module.exports = { postUser, sendOtp, getUser, getOtpEmail, updateUser,getUserDriver,updateDriver,updateUserCredit };
+module.exports = {
+  postUser,
+  sendOtp,
+  getUser,
+  getOtpEmail,
+  updateUser,
+  getUserDriver,
+  updateDriver,
+  updateUserCredit,
+};

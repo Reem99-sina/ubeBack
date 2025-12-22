@@ -1,0 +1,89 @@
+User Management & OTP Service API
+This project is a backend API for user management, including features for creating users, sending OTPs via SMS or email, updating user data, managing drivers, and handling user credits. The API is built with Node.js, Express, and MongoDB, and includes validation middleware for request input.
+
+Features
+User Registration: Create new users with phone, email, and name.
+
+OTP Services:
+Send OTP to user phone via SMS.
+Send OTP to user email.
+
+User Management:
+Get user information.
+Update user data.
+Update user credit information.
+Delete user account.
+
+Driver Management:
+Get driver information.
+Update driver details.
+
+Clone the repository:
+
+git clone <repository-url>
+cd <project-folder>
+
+
+Install dependencies:
+npm install
+
+
+Create a .env file with your environment variables (MongoDB URI, SMS/Email API keys, etc.):
+
+INFOBIP_API_KEY=56f0300fae690d9a005431f6228e00bf-a207de37-5f8f-47d4-8945-a994eeb6e4e9
+VONAGE_API_KEY=26e5cea4
+VONAGE_API_SECRET='L4jw)sMQxs*Kqtucje'
+VONAGE_FROM=NEXMO
+
+Start the server:
+npm run dev
+
+
+Server will run at http://localhost:1200 (or your configured port).
+
+Project Structure
+├── routes/
+│   └── user.js         # User-related API routes
+├── service/
+│   └── user/           # Business logic for user operations
+├── validation/         # Request validation schemas
+├── utils/              # Helper functions and validation middleware
+├── app.js / server.js  # Express app entry point
+
+Dependencies
+
+express – Web framework
+mongoose – MongoDB ODM
+axios – HTTP client (for SMS/Email APIs)
+dotenv – Environment variable management
+joi – Input validation
+vonage – SMS API integration
+cors – Cross-origin requests
+nodemailer – Email service
+
+Usage
+
+To create a new user:
+
+POST /user
+Body: {
+  "phoneNumber": "+201234567890",
+  "email": "user@example.com",
+  "name": "John Doe"
+}
+
+
+To send OTP to phone:
+
+POST /user/OTP
+Body: {
+  "to": "+201234567890"
+}
+
+
+To send OTP to email:
+
+POST /user/OTPEmail
+Body: {
+  "email": "user@example.com"
+}

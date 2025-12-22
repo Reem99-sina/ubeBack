@@ -7,6 +7,7 @@ const {
   getUserDriver,
   updateDriver,
   updateUserCredit,
+  deleteUser,
   GetUser,
 } = require("../service/user/user");
 const { validation } = require("../utils/common.validation");
@@ -17,6 +18,7 @@ const {
   updateUserCreditlvalidation,
   updateUserValidation,
   updateDriverValidation,
+  deleteUserValidation,
 } = require("../validation/user.validation");
 
 const router = require("express").Router();
@@ -37,5 +39,7 @@ router.get("/driver", getUserDriver);
 router.post("/OTPEmail", validation(SendEmailvalidation), getOtpEmail);
 
 router.post("/OTP", validation(SendOtpvalidation), sendOtp);
+
+router.delete("/", validation(deleteUserValidation), deleteUser);
 
 module.exports = router;

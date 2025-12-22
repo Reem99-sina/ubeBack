@@ -135,7 +135,7 @@ const getOtpEmail = async (req, res) => {
     await sendEmail.sendEmail(req.body.email, message);
     res.status(200).json({ message: "done", code: code });
   } catch (error) {
-    res.status(400).json({ message: `error server`,error });
+    res.status(400).json({ message: `error server`, error });
   }
 };
 
@@ -164,6 +164,23 @@ const updateUserCredit = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "email is required" });
+    }
+    const deleted = await User.findOneAndDelete({ email: email });
+    if (deleted) {
+      return res.status(200).json({ message: "user deleted", user: deleted });
+    } else {
+      return res.status(404).json({ message: "user not found" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "server error", error: error.message });
+  }
+};
+
 module.exports = {
   postUser,
   sendOtp,
@@ -173,5 +190,6 @@ module.exports = {
   getUserDriver,
   updateDriver,
   updateUserCredit,
+  deleteUser,
   GetUser,
 };

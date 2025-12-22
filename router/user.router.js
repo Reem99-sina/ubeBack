@@ -7,12 +7,15 @@ const {
   getUserDriver,
   updateDriver,
   updateUserCredit,
+  GetUser,
 } = require("../service/user/user");
 const { validation } = require("../utils/common.validation");
 const { postUservalidation, SendOtpvalidation } = require("../validation/user.validation");
 
 const router = require("express").Router();
 router.post("/", validation(postUservalidation), postUser);
+router.get("/",  GetUser);
+
 router.patch("/update", updateUser);
 router.patch("/updateDriver", updateDriver);
 router.patch("/updateUserCredit", updateUserCredit);

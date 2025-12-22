@@ -8,6 +8,15 @@ const vonage = new Vonage({
   apiKey: "9430c4d3",
   apiSecret: "HP6wSNFF4UjOLu7G",
 });
+const GetUser = async (req, res) => {
+  await User.find()
+    .then((result) =>
+      res.status(200).json({ message: "done create user", user: result })
+    )
+    .catch((error) =>
+      res.status(400).json({ message: `error server ${error}` })
+    );
+};
 const postUser = async (req, res) => {
   await User.create(req.body)
     .then((result) =>
@@ -59,7 +68,7 @@ const sendOtp = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "User not found",code: otp });
     }
 
     // const response = await axios.post(
@@ -88,25 +97,18 @@ const sendOtp = async (req, res) => {
         text: `Your verification code is: ${otp}`,
       })
       .then((resp) => {
-        console.log("Message sent successfully");
-        console.log(resp);
         return res.status(200).json({
           success: true,
           message: "OTP sent successfully",
           code: otp,
-          user: {
-            id: user._id,
-            name: user.name,
-            phoneNumber: user.phoneNumber,
-          },
+          user: user,
         });
       })
       .catch((err) => {
-        console.log("There was an error sending the messages.");
-        console.error(err);
-        res.status(401).json({
+        return res.status(401).json({
           success: false,
           message: "Failed to send OTP",
+          code: otp,
           error: err.response?.data || err.message,
         });
       });
@@ -114,6 +116,7 @@ const sendOtp = async (req, res) => {
     return res.status(401).json({
       success: false,
       message: "Failed to send OTP",
+      code:otp,
       error: error.response?.data || error.message,
     });
   }
@@ -160,4 +163,5 @@ module.exports = {
   getUserDriver,
   updateDriver,
   updateUserCredit,
+  GetUser
 };

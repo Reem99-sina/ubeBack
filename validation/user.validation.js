@@ -33,20 +33,16 @@ module.exports.postUservalidation = {
     role: joi
       .string()
       .valid("user", "admin", "driver") // أمثلة على الـ roles
-      .required()
+
       .messages({
         "any.only": "Role must be either 'user', 'admin', or 'driver'",
         "string.empty": "Role is required",
-        "any.required": "Role is required",
       }),
   }),
 };
 
-
 module.exports.SendOtpvalidation = {
   body: joi.object({
-   
-
     to: joi
       .string()
       .pattern(/^\+?\d{10,15}$/)
@@ -57,7 +53,5 @@ module.exports.SendOtpvalidation = {
         "string.empty": "Phone number is required",
         "any.required": "Phone number is required",
       }),
-
-   
   }),
 };

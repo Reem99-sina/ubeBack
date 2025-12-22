@@ -10,21 +10,32 @@ const {
   GetUser,
 } = require("../service/user/user");
 const { validation } = require("../utils/common.validation");
-const { postUservalidation, SendOtpvalidation } = require("../validation/user.validation");
+const {
+  postUservalidation,
+  SendOtpvalidation,
+  SendEmailvalidation,
+  updateUserCreditlvalidation,
+  updateUserValidation,
+  updateDriverValidation,
+} = require("../validation/user.validation");
 
 const router = require("express").Router();
 router.post("/", validation(postUservalidation), postUser);
-router.get("/",  GetUser);
+router.get("/", GetUser);
 
-router.patch("/update", updateUser);
-router.patch("/updateDriver", updateDriver);
-router.patch("/updateUserCredit", updateUserCredit);
+router.patch("/update", validation(updateUserValidation), updateUser);
+router.patch("/updateDriver", validation(updateDriverValidation), updateDriver);
+router.patch(
+  "/updateUserCredit",
+  validation(updateUserCreditlvalidation),
+  updateUserCredit
+);
 
 router.get("/", getUser);
 router.get("/driver", getUserDriver);
 
-router.get("/OTPEmail", getOtpEmail);
+router.post("/OTPEmail", validation(SendEmailvalidation), getOtpEmail);
 
-router.post("/OTP", validation(SendOtpvalidation),sendOtp);
+router.post("/OTP", validation(SendOtpvalidation), sendOtp);
 
 module.exports = router;

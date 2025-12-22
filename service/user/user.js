@@ -68,7 +68,7 @@ const sendOtp = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found",code: otp });
+        .json({ success: false, message: "User not found", code: otp });
     }
 
     // const response = await axios.post(
@@ -116,19 +116,29 @@ const sendOtp = async (req, res) => {
     return res.status(401).json({
       success: false,
       message: "Failed to send OTP",
-      code:otp,
+      code: otp,
       error: error.response?.data || error.message,
     });
   }
 };
 
 const getOtpEmail = async (req, res) => {
-  const code = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
-  const message = `<p>the code i need is ${code}</p>`;
-  console.log(req.body.email, "req.body.email");
-  await sendEmail(req.body.email, message);
-  res.status(200).json({ message: "done", code: code });
+  try {
+    const user = await User.findOne({ email: req.body.email.toLowerCase() });
+    if (user) {
+      return res.status(404).json({ message: "the email with duplicated" });
+    }
+
+    const code = Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
+    const message = `<p>the code i need is ${code}</p>`;
+    console.log(req.body.email, "req.body.email");
+    await sendEmail.sendEmail(req.body.email, message);
+    res.status(200).json({ message: "done", code: code });
+  } catch (error) {
+    res.status(400).json({ message: `error server`,error });
+  }
 };
+
 const updateUser = async (req, res) => {
   const { email, currentLocation, destination, time } = req.body;
   const result = await User.findOneAndUpdate(
@@ -163,5 +173,5 @@ module.exports = {
   getUserDriver,
   updateDriver,
   updateUserCredit,
-  GetUser
+  GetUser,
 };

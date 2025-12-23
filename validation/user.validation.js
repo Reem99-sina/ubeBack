@@ -86,7 +86,7 @@ module.exports.updateUserCreditlvalidation = {
       "string.creditCard": "Credit card number is invalid",
     }),
 
-    expDate: joi
+    EXpDate: joi
       .string()
       .pattern(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/) // MM/YY
       .required()

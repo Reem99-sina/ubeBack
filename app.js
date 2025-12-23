@@ -22,27 +22,35 @@ io.on("connection", (socket) => {
   socket.data.email = null;
 
   socket.on("login", async (payload) => {
-    console.log(payload,'payload')
+    console.log(payload, "payload");
     try {
       const { email } = payload || {};
       if (!email) return;
       socket.data.email = email;
-      await User.findOneAndUpdate({ email }, { active_status: true });
-      io.emit("userStatusChanged", { email, active_status: true });
+      const user = await User.findOneAndUpdate(
+        { email },
+        { active_status: true },
+        { new: true } // 👈 return updated user
+      );
+      io.emit("userStatusChanged", { user });
     } catch (err) {
       console.error("socket login error", err);
     }
   });
 
   socket.on("logout", async (payload) => {
-    console.log(payload,'payload')
+    console.log(payload, "payload");
 
     try {
       const { email } = payload || {};
       const userEmail = email || socket.data.email;
       if (!userEmail) return;
-      await User.findOneAndUpdate({ email: userEmail }, { active_status: false });
-      io.emit("userStatusChanged", { email: userEmail, active_status: false });
+      const user = await User.findOneAndUpdate(
+        { email: userEmail },
+        { active_status: false },
+        { new: true }
+      );
+      io.emit("userStatusChanged", { user });
       socket.data.email = null;
     } catch (err) {
       console.error("socket logout error", err);

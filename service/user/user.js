@@ -40,7 +40,7 @@ const getUser = async (req, res) => {
   }
 };
 const getUserDriver = async (req, res) => {
-  const UserEmail = await User.findOne({ role: "driver" });
+  const UserEmail = await User.find({ role: "driver" });
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {

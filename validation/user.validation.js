@@ -138,20 +138,18 @@ module.exports.updateUserValidation = {
     currentLocation: joi
       .object({
         lat: joi
-          .string()
-          .pattern(/^-?\d+(\.\d+)?$/)
+          .number()
           .required()
           .messages({
-            "string.empty": "Current latitude is required",
-            "string.pattern.base": "Current latitude must be a valid number",
+            "number.base": "Current latitude must be a valid number",
+            "any.required": "Current latitude is required",
           }),
         lng: joi
-          .string()
-          .pattern(/^-?\d+(\.\d+)?$/)
+          .number()
           .required()
           .messages({
-            "string.empty": "Current longitude is required",
-            "string.pattern.base": "Current longitude must be a valid number",
+            "number.base": "Current longitude must be a valid number",
+            "any.required": "Current longitude is required",
           }),
       })
       .required(),
@@ -159,33 +157,30 @@ module.exports.updateUserValidation = {
     destination: joi
       .object({
         lat: joi
-          .string()
-          .pattern(/^-?\d+(\.\d+)?$/)
+          .number()
           .required()
           .messages({
-            "string.empty": "Destination latitude is required",
-            "string.pattern.base":
-              "Destination latitude must be a valid number",
+            "number.base": "Destination latitude must be a valid number",
+            "any.required": "Destination latitude is required",
           }),
         lng: joi
-          .string()
-          .pattern(/^-?\d+(\.\d+)?$/)
+          .number()
           .required()
           .messages({
-            "string.empty": "Destination longitude is required",
-            "string.pattern.base":
-              "Destination longitude must be a valid number",
+            "number.base": "Destination longitude must be a valid number",
+            "any.required": "Destination longitude is required",
           }),
       })
       .required(),
 
     time: joi
-      .string()
-      .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/) // HH:MM 24h format
+      .date()
+      .iso()
       .required()
       .messages({
-        "string.empty": "Time is required",
-        "string.pattern.base": "Time must be in HH:MM format",
+        "date.base": "Time must be a valid ISO 8601 date-time",
+        "date.format": "Time must be in ISO 8601 format (e.g. 2025-12-23T14:14:00.000Z)",
+        "any.required": "Time is required",
       }),
   }),
 };

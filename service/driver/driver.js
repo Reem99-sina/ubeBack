@@ -5,6 +5,14 @@ const { Wallet } = require("../../module/wallet");
 const createDriver = async (req, res) => {
   try {
     const payload = req.body;
+    const existingDriver = await Driver.findOne({
+      $or: [{ email: payload.email }, { phoneNumber: payload.phoneNumber }],
+    });
+    if (existingDriver) {
+      return res.status(409).json({
+        message: "Driver already exists with this email or phone number",
+      });
+    }
     const driver = await Driver.create(payload);
 
     // create a wallet for the driver

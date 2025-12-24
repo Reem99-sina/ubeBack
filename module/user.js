@@ -16,6 +16,15 @@ const userSchema = new Schema(
     creditCard: String,
     EXpDate: String,
     cvv: String,
+    paymentMethods: [
+      {
+        method: { type: String, enum: ['card', 'cash'], default: 'card' },
+        creditCard: String,
+        EXpDate: String,
+        cvv: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -3,6 +3,10 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { connectdb } = require("./connect");
 const routeruSER = require("./router/user.router");
+const routerTrip = require("./router/trip.router");
+const routerDriver = require("./router/driver.router");
+
+
 const { User } = require("./module/user");
 
 require("dotenv").config();
@@ -10,6 +14,9 @@ require("dotenv").config();
 const app = express();
 app.use(express.json());
 app.use("/user", routeruSER);
+app.use("/trip",routerTrip );
+app.use("/driver",routerDriver );
+
 
 connectdb();
 

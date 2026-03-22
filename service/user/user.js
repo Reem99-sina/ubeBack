@@ -123,15 +123,39 @@ const sendVerifyOtp = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found", code: otp });
     }
-    const result = await textflow.verifyCode(req.body.to, req.body.code);
-    if (!result.valid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Failed to code" });
+
+    const record = otpStore[phone];
+
+    if (!record) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found",
+      });
     }
-    return res
-      .status(200)
-      .json({ success: true, message: "success login ", user: user });
+
+    if (Date.now() > record.expires) {
+      delete otpStore[phone];
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
+    }
+
+    if (record.code != otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // ✅ success
+    delete otpStore[phone];
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      user: user,
+    });
   } catch (error) {
     return res.status(400).json({ success: false, message: "Failed to code" });
   }

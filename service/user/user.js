@@ -97,6 +97,7 @@ const sendOtp = async (req, res) => {
           success: true,
           message: "OTP sent successfully",
           user: user || driver,
+          code:otp
         });
       })
       .catch((err) => {

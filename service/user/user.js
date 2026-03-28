@@ -32,10 +32,11 @@ const GetUser = async (req, res) => {
     );
 };
 const postUser = async (req, res) => {
-   const newUser = new User({
-      ...req.body
-    });
-    await newUser.save()
+  const newUser = new User({
+    ...req.body,
+  });
+  await newUser
+    .save()
     .then((result) =>
       res.status(200).json({ message: "done create user", user: result }),
     )
@@ -48,14 +49,14 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email })
- 
+    const user = await User.findOne({ email });
+
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-    
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });

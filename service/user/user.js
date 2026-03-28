@@ -4,6 +4,7 @@ const { Driver } = require("../../module/driver");
 const sendEmail = require("../../utils/sendEmail");
 const { SMS } = require("@vonage/messages");
 const { default: axios } = require("axios");
+const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const textflow = require("textflow.js");
 require("dotenv").config();
@@ -22,7 +23,7 @@ const client = twilio(
 const otpStore = {};
 
 const GetUser = async (req, res) => {
-  await User.find()
+  await User.findById(req.user?._id)
     .then((result) =>
       res.status(200).json({ message: "done create user", user: result }),
     )
@@ -31,13 +32,38 @@ const GetUser = async (req, res) => {
     );
 };
 const postUser = async (req, res) => {
-  await User.create(req.body)
+   const newUser = new User({
+      ...req.body
+    });
+    await newUser.save()
     .then((result) =>
       res.status(200).json({ message: "done create user", user: result }),
     )
     .catch((error) =>
       res.status(400).json({ message: `error server ${error}` }),
     );
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email })
+ 
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
+    
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.json({ message: "Login successful", token });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 };
 const getUser = async (req, res) => {
   const { email } = req.body;
@@ -293,6 +319,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   postUser,
+  loginUser,
   sendOtp,
   getUser,
   getOtpEmail,

@@ -19,21 +19,15 @@ module.exports.postUservalidation = {
         "any.required": "Email is required",
       }),
 
-    phoneNumber: joi
-      .string()
-      .pattern(/^\+?\d{10,15}$/)
-      .required()
-      .messages({
-        "string.pattern.base":
-          "Phone number must be valid and include country code",
-        "string.empty": "Phone number is required",
-        "any.required": "Phone number is required",
-      }),
+    password: joi.string().min(6).required().messages({
+      "string.empty": "Password is required",
+      "string.min": "Password must be at least 6 characters",
+      "any.required": "Password is required",
+    }),
 
     role: joi
       .string()
       .valid("user", "admin", "driver") // أمثلة على الـ roles
-
       .messages({
         "any.only": "Role must be either 'user', 'admin', or 'driver'",
         "string.empty": "Role is required",
@@ -67,13 +61,12 @@ module.exports.SendVerifyOtpvalidation = {
         "string.empty": "Phone number is required",
         "any.required": "Phone number is required",
       }),
-      code:joi
+    code: joi
       .string()
       .pattern(/^\+?\d{3,}$/)
       .required()
       .messages({
-        "string.pattern.base":
-          "code must be valid ",
+        "string.pattern.base": "code must be valid ",
         "string.empty": "code is required",
         "any.required": "code is required",
       }),
@@ -205,5 +198,18 @@ module.exports.deleteUserValidation = {
         "string.empty": "Email is required",
         "string.email": "Email must be valid",
       }),
+  }),
+};
+
+module.exports.loginValidation = {
+  body: joi.object({
+    email: joi.string().email().required().messages({
+      "string.email": "Email must be valid",
+      "any.required": "Email is required",
+    }),
+    password: joi.string().min(6).required().messages({
+      "string.min": "Password must be at least 6 characters",
+      "any.required": "Password is required",
+    }),
   }),
 };

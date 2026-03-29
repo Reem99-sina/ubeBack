@@ -98,7 +98,9 @@ const updateDriver = async (req, res) => {
   );
 
   const io = getIo();
-  io.emit("driverAssigned", { user: UserEmail, driver_id });
+  if (driver_id) {
+    io.emit("driverAssigned", { user: UserEmail, driver_id });
+  }
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {

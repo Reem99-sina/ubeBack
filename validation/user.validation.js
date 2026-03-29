@@ -135,10 +135,13 @@ module.exports.updateDriverValidation = {
         "any.required": "Email is required",
       }),
 
-    driver_id: joi.string().required().messages({
-      "string.empty": "Driver ID is required",
-      "any.required": "Driver ID is required",
-    }),
+    driver_id: joi
+      .string()
+      .allow(null) // ✅ allow null
+      .optional()  // optional (so you can omit it if needed)
+      .messages({
+        "string.base": "Driver ID must be a string or null",
+      }),
   }),
 };
 

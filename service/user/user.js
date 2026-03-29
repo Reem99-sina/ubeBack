@@ -1,6 +1,4 @@
 const { Vonage } = require("@vonage/server-sdk");
-const { User } = require("../../module/user");
-const { Driver } = require("../../module/driver");
 const sendEmail = require("../../utils/sendEmail");
 const { SMS } = require("@vonage/messages");
 const { default: axios } = require("axios");
@@ -8,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const textflow = require("textflow.js");
 const { getIo } = require("../../socket");
+const { Wallet } = require("../../module/wallet");
+const { User } = require("../../module/user");
 require("dotenv").config();
 // textflow.useKey(process.env.TEXT_FLOW_KEY);
 // const vonage = new Vonage({
@@ -33,17 +33,43 @@ const GetUser = async (req, res) => {
     );
 };
 const postUser = async (req, res) => {
-  const newUser = new User({
-    ...req.body,
-  });
-  await newUser
-    .save()
-    .then((result) =>
-      res.status(200).json({ message: "done create user", user: result }),
-    )
-    .catch((error) =>
-      res.status(400).json({ message: `error server ${error}` }),
-    );
+  try {
+    // 1. Create user document
+    const newUser = new User({ ...req.body });
+
+    const savedUser = await newUser.save();
+
+    // 2. Create wallet for user
+    let wallet;
+    try {
+      wallet = await Wallet.create({
+        driverId: savedUser._id, // link to the user
+        balance: 0,
+      });
+
+      // 3. Update user with wallet info
+      await User.findByIdAndUpdate(
+        savedUser._id,
+        { walletId: wallet._id, walletBalance: wallet.balance },
+        { new: true }
+      );
+    } catch (walletErr) {
+      // Non-fatal: wallet failed but user still created
+      console.warn("Failed to create wallet for user:", walletErr.message);
+    }
+
+    // 4. Respond with created user
+    return res.status(201).json({
+      message: "User created successfully",
+     
+    });
+  } catch (error) {
+    console.error("Failed to create user:", error.message);
+    return res.status(500).json({
+      message: "Server error while creating user",
+      error: error.message,
+    });
+  }
 };
 
 const loginUser = async (req, res) => {
@@ -82,7 +108,7 @@ const getUser = async (req, res) => {
 };
 const getUserDriver = async (req, res) => {
   try {
-    const drivers = await Driver.find();
+    const drivers = await User.find({ role: "driver" });
     return res.status(200).json(drivers);
   } catch (error) {
     return res
@@ -113,7 +139,7 @@ const sendOtp = async (req, res) => {
     const otp = Math.ceil(Math.random() * 1000);
 
     const user = await User.findOne({ phoneNumber: req.body.to });
-    const driver = await Driver.findOne({ phoneNumber: req.body.to });
+
     otpStore[req.body.to] = {
       code: otp,
       expires: Date.now() + 5 * 60 * 1000, // 5 min
@@ -129,7 +155,7 @@ const sendOtp = async (req, res) => {
         return res.status(200).json({
           success: true,
           message: "OTP sent successfully",
-          user: user || driver,
+          user: user,
           code: otp,
         });
       })
@@ -138,7 +164,7 @@ const sendOtp = async (req, res) => {
           success: false,
           message: "Failed to send OTP",
           error: err.response?.data || err.message,
-          user: user || driver,
+          user: user,
           code: otp,
         });
       });
@@ -214,15 +240,41 @@ const getOtpEmail = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { email, currentLocation, destination, time } = req.body;
-  const result = await User.findOneAndUpdate(
-    { email: email },
-    { currentLocation: currentLocation, destination: destination, time: time },
-  );
-  if (result) {
-    res.status(200).json(result);
-  } else {
-    res.status(400).json({ message: "update user error" });
+  try {
+    const {
+      email,
+      currentLocation,
+      destination,
+      time,
+      vehicle,
+      paymentMethod,
+    } = req.body;
+    const updateFields = {};
+
+    if (vehicle !== undefined) updateFields.vehicle = vehicle;
+    if (currentLocation !== undefined)
+      updateFields.currentLocation = currentLocation;
+    if (destination !== undefined) updateFields.destination = destination;
+    if (time !== undefined) updateFields.time = time;
+
+    if (Object.keys(updateFields).length > 0) {
+      await User.findOneAndUpdate({ email: email }, updateFields);
+    }
+
+    // ✅ add new payment method
+    if (paymentMethod) {
+      await User.findOneAndUpdate(
+        { email: email },
+        {
+          $push: { paymentMethods: paymentMethod },
+        },
+      );
+    }
+    return res.status(200).json({ message: "driver updated", driver });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "server error", error: error.message });
   }
 };
 const updateUserCredit = async (req, res) => {
@@ -230,74 +282,78 @@ const updateUserCredit = async (req, res) => {
     const { email, creditCard, EXpDate, cvv } = req.body;
     if (!email) return res.status(400).json({ message: "email is required" });
 
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      return res.status(404).json({ message: "user not found" });
-    }
-
-    if (!creditCard || !EXpDate || !cvv) {
+    if (!creditCard || !EXpDate || !cvv)
       return res
         .status(400)
-        .json({ message: "creditCard, EXpDate and cvv are required" });
-    }
+        .json({ message: "creditCard, EXpDate, and cvv are required" });
 
-    // ensure paymentMethods array exists
-    if (!Array.isArray(user.paymentMethods)) user.paymentMethods = [];
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "user not found" });
 
-    // Try to find an existing method by full card number
-    const existingIndex = user.paymentMethods.findIndex(
+    // Ensure paymentMethods exists
+    const paymentMethods = Array.isArray(user.paymentMethods)
+      ? user.paymentMethods
+      : [];
+
+    // Check if card already exists
+    const existingIndex = paymentMethods.findIndex(
       (m) => String(m.creditCard) === String(creditCard),
     );
 
+    let updatedPaymentMethods;
     if (existingIndex >= 0) {
-      const existing = user.paymentMethods[existingIndex];
+      const existing = paymentMethods[existingIndex];
+
       const sameCard = String(existing.creditCard) === String(creditCard);
       const sameExp = String(existing.EXpDate) === String(EXpDate);
       const sameCvv = String(existing.cvv) === String(cvv);
 
       if (sameCard && sameExp && sameCvv) {
-        // nothing changed
-        // update top-level compatibility fields
-        user.creditCard = creditCard;
-        user.EXpDate = EXpDate;
-        user.cvv = cvv;
-        await user.save();
+        // No changes, just update top-level fields
+        await User.updateOne({ email }, { creditCard, EXpDate, cvv });
         return res
           .status(200)
           .json({ message: "payment details are the same", user });
       }
 
-      // Partial change: update the stored method
+      // Partial update
       existing.EXpDate = EXpDate;
       existing.cvv = cvv;
       existing.last4 = String(creditCard).slice(-4);
-      user.paymentMethods[existingIndex] = existing;
+      paymentMethods[existingIndex] = existing;
 
-      // update top-level compatibility fields
-      user.creditCard = creditCard;
-      user.EXpDate = EXpDate;
-      user.cvv = cvv;
-      await user.save();
-      return res.status(200).json({ message: "payment method updated", user });
+      updatedPaymentMethods = paymentMethods;
+    } else {
+      // New card
+      const newMethod = {
+        method: "card",
+        creditCard,
+        EXpDate,
+        cvv,
+        last4: String(creditCard).slice(-4),
+        createdAt: new Date(),
+      };
+      updatedPaymentMethods = [...paymentMethods, newMethod];
     }
 
-    // New payment method: push to array
-    const newMethod = {
-      method: "card",
-      creditCard,
-      EXpDate,
-      cvv,
-      last4: String(creditCard).slice(-4),
-      createdAt: new Date(),
-    };
-    user.paymentMethods.push(newMethod);
+    // Update user document in one operation
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      {
+        creditCard,
+        EXpDate,
+        cvv,
+        paymentMethods: updatedPaymentMethods,
+      },
+      { new: true }, // Return updated document
+    );
 
-    // update top-level compatibility fields
-    user.creditCard = creditCard;
-    user.EXpDate = EXpDate;
-    user.cvv = cvv;
-    await user.save();
-    return res.status(201).json({ message: "payment method added", user });
+    return res.status(200).json({
+      message:
+        existingIndex >= 0 ? "payment method updated" : "payment method added",
+      user: updatedUser,
+    });
   } catch (error) {
     return res
       .status(500)

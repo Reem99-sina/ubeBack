@@ -138,7 +138,7 @@ module.exports.updateDriverValidation = {
     driver_id: joi
       .string()
       .allow(null) // ✅ allow null
-      .optional()  // optional (so you can omit it if needed)
+      .optional() // optional (so you can omit it if needed)
       .messages({
         "string.base": "Driver ID must be a string or null",
       }),
@@ -188,6 +188,46 @@ module.exports.updateUserValidation = {
         "Time must be in ISO 8601 format (e.g. 2025-12-23T14:14:00.000Z)",
       "any.required": "Time is required",
     }),
+    vehicle: joi.string().optional().messages({
+      "string.base": "Vehicle must be a string",
+      "string.empty": "Vehicle cannot be empty",
+    }),
+    name: joi.string().min(2).optional().messages({
+      "string.base": "Name must be a string",
+      "string.min": "Name must be at least 2 characters",
+    }),
+    paymentMethod: joi
+      .object({
+        method: joi.string().valid("card", "cash").required().messages({
+          "any.only": "Method must be either card or cash",
+          "any.required": "Payment method is required",
+        }),
+
+        creditCard: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "Credit card number is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+
+        EXpDate: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "Expiry date is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+
+        cvv: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "CVV is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+      })
+      .optional(),
   }),
 };
 

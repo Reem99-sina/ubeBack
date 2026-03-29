@@ -15,13 +15,17 @@ const {
   getDriverById,
   updateDriver,
   loginDriver,
+  getDriver,
 } = require('../service/driver/driver');
+const { auth } = require('../utils/auth');
 
 router.post('/create', validation(createDriverValidation), createDriver);
 router.post('/addPayment', validation(addPaymentValidation), addPaymentMethod);
 router.patch('/update', validation(updateDriverValidation), updateDriver);
 router.post("/login", validation(loginValidation), loginDriver);
 router.get('/', getDrivers);
-router.get('/:id', validation(getDriverByIdValidation), getDriverById);
+router.get("/own", auth(), getDriver);
+
+// router.get('/:id', validation(getDriverByIdValidation), getDriverById);
 
 module.exports = router;

@@ -20,6 +20,8 @@ module.exports.auth = () => {
             res.status(400).json({ message: "in valid token" });
           } else {
             const user = await User.findById(decoded.userId);
+            const driver = await Driver.findById(decoded.driverId);
+
             if (!user) {
               res.status(400).json({ message: "no user fonud" });
             } else {

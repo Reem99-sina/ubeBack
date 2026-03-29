@@ -18,17 +18,7 @@ const createDriver = async (req, res) => {
     await driver.save();
 
     // // create a wallet for the driver
-    try {
-      const wallet = await Wallet.create({ driverId: driver._id, balance: 0 });
-      const driverAddWallet = await Driver.findByIdAndUpdate(
-        driver._id,
-        { walletId: wallet._id, walletBalance: wallet.balance },
-        { new: true },
-      );
-    } catch (werr) {
-      // log wallet creation error but return driver (non-fatal)
-      console.warn("Failed to create wallet for driver:", werr.message);
-    }
+    
 
     return res.status(201).json(driver);
   } catch (error) {
@@ -142,11 +132,26 @@ const updateDriver = async (req, res) => {
   }
 };
 
+const getDriver = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ message: "need email to fetch driver" });
+  } else {
+    const DriverEmail = await Driver.findOne({ email: email });
+    if (DriverEmail) {
+      res.status(200).json(DriverEmail);
+    } else {
+      res.status(400).json({ message: "driver not found" });
+    }
+  }
+};
+
 module.exports = {
   createDriver,
   addPaymentMethod,
   getDrivers,
   getDriverById,
   updateDriver,
-  loginDriver
+  loginDriver,
+  getDriver
 };

@@ -6,18 +6,12 @@ module.exports.createDriverValidation = {
       "string.empty": "name is required",
       "string.min": "name must be at least 2 characters",
     }),
-    vehicle: joi.string().required().messages({
-      "string.empty": "vehicle is required",
+    password: joi.string().min(6).required().messages({
+      "string.empty": "Password is required",
+      "string.min": "Password must be at least 6 characters",
+      "any.required": "Password is required",
     }),
-    phoneNumber: joi
-      .string()
-      .pattern(/^\+?\d{7,15}$/)
-      .required()
-      .messages({
-        "string.pattern.base":
-          "phoneNumber must be valid and include country code",
-        "string.empty": "phoneNumber is required",
-      }),
+
     email: joi
       .string()
       .email({ tlds: { allow: false } })
@@ -26,26 +20,57 @@ module.exports.createDriverValidation = {
         "string.empty": "Email is required",
         "string.email": "Email must be valid",
       }),
-    paymentMethods: joi
-      .array()
-      .items(
-        joi.object({
-          method: joi.string().valid("card", "cash").required(),
-          creditCard: joi
-            .string()
-            .creditCard()
-            .when("method", { is: "card", then: joi.required() }),
-          EXpDate: joi
-            .string()
-            .pattern(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/)
-            .when("method", { is: "card", then: joi.required() }),
-          cvv: joi
-            .string()
-            .pattern(/^[0-9]{3,4}$/)
-            .when("method", { is: "card", then: joi.required() }),
-          last4: joi.string().length(4).optional(),
-        })
-      )
+    vehicle: joi.string().optional().messages({
+      "string.base": "Vehicle must be a string",
+      "string.empty": "Vehicle cannot be empty",
+    }),
+  }),
+};
+
+module.exports.updateDriverValidation = {
+  body: joi.object({
+    driverId: joi.string().required().messages({
+      "string.empty": "driverId is required",
+    }),
+    vehicle: joi.string().optional().messages({
+      "string.base": "Vehicle must be a string",
+      "string.empty": "Vehicle cannot be empty",
+    }),
+    name: joi.string().min(2).optional().messages({
+      "string.base": "Name must be a string",
+      "string.min": "Name must be at least 2 characters",
+    }),
+    paymentMethod: joi
+      .object({
+        method: joi.string().valid("card", "cash").required().messages({
+          "any.only": "Method must be either card or cash",
+          "any.required": "Payment method is required",
+        }),
+
+        creditCard: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "Credit card number is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+
+        EXpDate: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "Expiry date is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+
+        cvv: joi.when("method", {
+          is: "card",
+          then: joi.string().required().messages({
+            "string.empty": "CVV is required",
+          }),
+          otherwise: joi.string().optional().allow(null, ""),
+        }),
+      })
       .optional(),
   }),
 };

@@ -6,21 +6,24 @@ const createDriver = async (req, res) => {
   try {
     const payload = req.body;
     const existingDriver = await Driver.findOne({
-      $or: [{ email: payload.email }, { phoneNumber: payload.phoneNumber }],
+      $or: [{ email: payload.email }],
     });
     if (existingDriver) {
       return res.status(409).json({
         message: "Driver already exists with this email or phone number",
       });
     }
-    const driver = await Driver.create(payload);
+    const driver = new Driver(payload);
+    await driver.save();
 
-    // create a wallet for the driver
+    // // create a wallet for the driver
     try {
       const wallet = await Wallet.create({ driverId: driver._id, balance: 0 });
-      driver.walletId = wallet._id;
-      driver.walletBalance = wallet.balance;
-      await driver.save();
+      const driverAddWallet = await Driver.findByIdAndUpdate(
+        driver._id,
+        { walletId: wallet._id, walletBalance: wallet.balance },
+        { new: true },
+      );
     } catch (werr) {
       // log wallet creation error but return driver (non-fatal)
       console.warn("Failed to create wallet for driver:", werr.message);
@@ -88,4 +91,39 @@ const getDriverById = async (req, res) => {
   }
 };
 
-module.exports = { createDriver, addPaymentMethod, getDrivers, getDriverById };
+const updateDriver = async (req, res) => {
+  try {
+    const { driverId, vehicle, paymentMethod } = req.body;
+
+    const updateFields = {};
+
+    if (vehicle !== undefined) updateFields.vehicle = vehicle;
+
+    if (Object.keys(updateFields).length > 0) {
+      await Driver.findByIdAndUpdate(driverId, updateFields);
+    }
+
+    // ✅ add new payment method
+    if (paymentMethod) {
+      await Driver.findByIdAndUpdate(driverId, {
+        $push: { paymentMethods: paymentMethod },
+      });
+    }
+
+    const driver = await Driver.findById(driverId);
+
+    return res.status(200).json({ message: "driver updated", driver });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "server error", error: error.message });
+  }
+};
+
+module.exports = {
+  createDriver,
+  addPaymentMethod,
+  getDrivers,
+  getDriverById,
+  updateDriver,
+};

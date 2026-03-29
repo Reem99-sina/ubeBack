@@ -1,6 +1,7 @@
 const { Driver } = require("../../module/driver");
 
 const { Wallet } = require("../../module/wallet");
+const jwt = require("jsonwebtoken");
 
 const createDriver = async (req, res) => {
   try {
@@ -37,6 +38,27 @@ const createDriver = async (req, res) => {
   }
 };
 
+const loginDriver = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const driver = await Driver.findOne({ email });
+
+    if (!driver) return res.status(400).json({ message: "Invalid credentials" });
+
+    const isMatch = await driver.comparePassword(password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
+
+    const token = jwt.sign({ driverId: driver._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.json({ message: "Login successful", token });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 const addPaymentMethod = async (req, res) => {
   try {
     const { driverId, method, creditCard, EXpDate, cvv } = req.body;
@@ -126,4 +148,5 @@ module.exports = {
   getDrivers,
   getDriverById,
   updateDriver,
+  loginDriver
 };

@@ -6,6 +6,7 @@ const {
   addPaymentValidation,
   getDriverByIdValidation,
   updateDriverValidation,
+  loginValidation,
 } = require('../validation/driver.validation');
 const {
   createDriver,
@@ -13,12 +14,13 @@ const {
   getDrivers,
   getDriverById,
   updateDriver,
+  loginDriver,
 } = require('../service/driver/driver');
 
 router.post('/create', validation(createDriverValidation), createDriver);
 router.post('/addPayment', validation(addPaymentValidation), addPaymentMethod);
 router.patch('/update', validation(updateDriverValidation), updateDriver);
-
+router.post("/login", validation(loginValidation), loginDriver);
 router.get('/', getDrivers);
 router.get('/:id', validation(getDriverByIdValidation), getDriverById);
 

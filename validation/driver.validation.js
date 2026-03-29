@@ -105,3 +105,17 @@ module.exports.getDriverByIdValidation = {
       .messages({ "string.empty": "driver id is required" }),
   }),
 };
+
+
+module.exports.loginValidation = {
+  body: joi.object({
+    email: joi.string().email().required().messages({
+      "string.email": "Email must be valid",
+      "any.required": "Email is required",
+    }),
+    password: joi.string().min(6).required().messages({
+      "string.min": "Password must be at least 6 characters",
+      "any.required": "Password is required",
+    }),
+  }),
+};

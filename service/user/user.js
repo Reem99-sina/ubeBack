@@ -7,6 +7,7 @@ const { default: axios } = require("axios");
 const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const textflow = require("textflow.js");
+const { getIo } = require("../../socket");
 require("dotenv").config();
 // textflow.useKey(process.env.TEXT_FLOW_KEY);
 // const vonage = new Vonage({
@@ -95,6 +96,9 @@ const updateDriver = async (req, res) => {
     { email: email },
     { driver_id: driver_id },
   );
+
+  const io = getIo();
+  io.emit("driverAssigned", { user: UserEmail, driver_id });
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {

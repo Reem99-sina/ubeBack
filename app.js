@@ -8,6 +8,7 @@ const routerDriver = require("./router/driver.router");
 
 
 const { User } = require("./module/user");
+const { initSocket } = require("./socket");
 
 require("dotenv").config();
 
@@ -21,9 +22,8 @@ app.use("/driver",routerDriver );
 connectdb();
 
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
+
+const io = initSocket(server);
 
 io.on("connection", (socket) => {
   socket.data.email = null;

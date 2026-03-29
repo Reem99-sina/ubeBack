@@ -15,6 +15,7 @@ const {
 
 router.post('/create', validation(createDriverValidation), createDriver);
 router.post('/addPayment', validation(addPaymentValidation), addPaymentMethod);
+
 router.get('/', getDrivers);
 router.get('/:id', validation(getDriverByIdValidation), getDriverById);
 

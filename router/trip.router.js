@@ -6,6 +6,7 @@ const {
   updateTripStatus,
   confirmTripByDriver,
   getTripByDriverId,
+  getTripByUserIdAndDriverId,
 } = require("../service/trip/trip");
 const { validation } = require("../utils/common.validation");
 const {
@@ -28,4 +29,5 @@ router.patch(
   confirmTripByDriver
 );
 router.get("/driver/:id", validation(getTripByIdValidation), getTripByDriverId);
+router.get("/user/:userId/driver/:driverId",  getTripByUserIdAndDriverId);
 module.exports = router;

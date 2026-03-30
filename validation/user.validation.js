@@ -158,35 +158,33 @@ module.exports.updateUserValidation = {
 
     currentLocation: joi
       .object({
-        lat: joi.number().required().messages({
+        lat: joi.number().messages({
           "number.base": "Current latitude must be a valid number",
-          "any.required": "Current latitude is required",
         }),
-        lng: joi.number().required().messages({
+        lng: joi.number().messages({
           "number.base": "Current longitude must be a valid number",
-          "any.required": "Current longitude is required",
         }),
       })
-      .required(),
+     ,
 
     destination: joi
       .object({
-        lat: joi.number().required().messages({
+        lat: joi.number().messages({
           "number.base": "Destination latitude must be a valid number",
-          "any.required": "Destination latitude is required",
+        
         }),
-        lng: joi.number().required().messages({
+        lng: joi.number().messages({
           "number.base": "Destination longitude must be a valid number",
-          "any.required": "Destination longitude is required",
+          
         }),
       })
-      .required(),
+      ,
 
-    time: joi.date().iso().required().messages({
+    time: joi.date().iso().messages({
       "date.base": "Time must be a valid ISO 8601 date-time",
       "date.format":
         "Time must be in ISO 8601 format (e.g. 2025-12-23T14:14:00.000Z)",
-      "any.required": "Time is required",
+     
     }),
     vehicle: joi.string().optional().messages({
       "string.base": "Vehicle must be a string",

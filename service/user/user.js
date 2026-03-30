@@ -51,7 +51,7 @@ const postUser = async (req, res) => {
       await User.findByIdAndUpdate(
         savedUser._id,
         { walletId: wallet._id, walletBalance: wallet.balance },
-        { new: true }
+        { new: true },
       );
     } catch (walletErr) {
       // Non-fatal: wallet failed but user still created
@@ -61,7 +61,7 @@ const postUser = async (req, res) => {
     // 4. Respond with created user
     return res.status(201).json({
       message: "User created successfully",
-     user: savedUser,
+      user: savedUser,
     });
   } catch (error) {
     console.error("Failed to create user:", error.message);
@@ -250,7 +250,11 @@ const updateUser = async (req, res) => {
       paymentMethod,
     } = req.body;
     const updateFields = {};
+    const user = await User.findOne({ email });
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     if (vehicle !== undefined) updateFields.vehicle = vehicle;
     if (currentLocation !== undefined)
       updateFields.currentLocation = currentLocation;
@@ -270,7 +274,7 @@ const updateUser = async (req, res) => {
         },
       );
     }
-    return res.status(200).json({ message: "driver updated", driver });
+    return res.status(200).json({ message: "user updated" });
   } catch (error) {
     return res
       .status(500)

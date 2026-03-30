@@ -124,9 +124,18 @@ const updateDriver = async (req, res) => {
   );
 
   const io = getIo();
-  if (driver_id) {
-    io.emit("driverAssigned", { user: UserEmail, driver_id });
-  }
+    const driverSocketId = onlineDrivers.get(driver_id);
+
+    if (!driverSocketId) {
+      return res.status(404).json({ message: "Driver not online" });
+    }
+
+    io.to(driverSocketId).emit("rideRequest", {
+      userId: UserEmail._id,
+      // pickup,
+      destination,
+    });
+
   if (UserEmail) {
     res.status(200).json(UserEmail);
   } else {

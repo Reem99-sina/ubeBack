@@ -61,7 +61,7 @@ const postUser = async (req, res) => {
     // 4. Respond with created user
     return res.status(201).json({
       message: "User created successfully",
-     
+     user: savedUser,
     });
   } catch (error) {
     console.error("Failed to create user:", error.message);

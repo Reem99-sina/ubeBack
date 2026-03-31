@@ -26,52 +26,6 @@ const io = initSocket(server);
 io.on("connection", (socket) => {
   socket.data.email = null;
 
-  socket.on("login", async (payload) => {
-    console.log(payload, "payload");
-    try {
-      const { email } = payload || {};
-      if (!email) return;
-      socket.data.email = email;
-      const user = await User.findOneAndUpdate(
-        { email },
-        { active_status: true },
-        { new: true } // 👈 return updated user
-      );
-      io.emit("userStatusChanged", { user });
-    } catch (err) {
-      console.error("socket login error", err);
-    }
-  });
-
-  socket.on("logout", async (payload) => {
-    console.log(payload, "payload");
-
-    try {
-      const { email } = payload || {};
-      const userEmail = email || socket.data.email;
-      if (!userEmail) return;
-      const user = await User.findOneAndUpdate(
-        { email: userEmail },
-        { active_status: false },
-        { new: true }
-      );
-      io.emit("userStatusChanged", { user });
-      socket.data.email = null;
-    } catch (err) {
-      console.error("socket logout error", err);
-    }
-  });
-
-  socket.on("disconnect", async () => {
-    try {
-      const email = socket.data.email;
-      if (!email) return;
-      await User.findOneAndUpdate({ email }, { active_status: false });
-      io.emit("userStatusChanged", { email, active_status: false });
-    } catch (err) {
-      console.error("socket disconnect error", err);
-    }
-  });
 });
 
 const PORT = process.env.PORT || 1200;

@@ -5,7 +5,7 @@ const { default: axios } = require("axios");
 const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const textflow = require("textflow.js");
-const { getIo } = require("../../socket");
+const { getIo, onlineDrivers } = require("../../socket");
 const { Wallet } = require("../../module/wallet");
 const { User } = require("../../module/user");
 require("dotenv").config();
@@ -118,23 +118,23 @@ const getUserDriver = async (req, res) => {
 };
 const updateDriver = async (req, res) => {
   const { email, driver_id } = req.body;
+
+  const io = getIo();
+  const driverSocketId = onlineDrivers.get(driver_id);
+
+  if (!driverSocketId) {
+    return res.status(404).json({ message: "Driver not online" });
+  }
   const UserEmail = await User.findOneAndUpdate(
-    { email: email },
+    { email: email,role:"user" },
     { driver_id: driver_id },
   );
 
-  const io = getIo();
-    const driverSocketId = onlineDrivers.get(driver_id);
-
-    if (!driverSocketId) {
-      return res.status(404).json({ message: "Driver not online" });
-    }
-
-    io.to(driverSocketId).emit("rideRequest", {
-      userId: UserEmail._id,
-      // pickup,
-      destination,
-    });
+  io.to(driverSocketId).emit("rideRequest", {
+    userId: UserEmail._id,
+    // pickup,
+    destination: UserEmail.destination,
+  });
 
   if (UserEmail) {
     res.status(200).json(UserEmail);

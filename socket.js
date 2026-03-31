@@ -1,3 +1,5 @@
+const { User } = require("./module/user");
+
 // socket.js
 let io = null;
 const onlineUsers = new Map();
@@ -11,8 +13,44 @@ function initSocket(server) {
   io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
+    socket.on("login", async (payload) => {
+      console.log(payload, "payload");
+      try {
+        const id = payload || {};
+        if (!id) return;
+
+        const user = await User.findByIdAndUpdate(
+          id,
+          { active_status: true },
+          { new: true }, // 👈 return updated user
+        );
+        io.emit("userStatusChanged", { user });
+      } catch (err) {
+        console.error("socket login error", err);
+      }
+    });
+
+    socket.on("logout", async (payload) => {
+      console.log(payload, "payload");
+
+      try {
+        const id = payload || {};
+
+        if (!id) return;
+        const user = await User.findOneAndUpdate(
+          { _id: id },
+          { active_status: false },
+          { new: true },
+        );
+        io.emit("userStatusChanged", { user });
+        socket.data.email = null;
+      } catch (err) {
+        console.error("socket logout error", err);
+      }
+    });
+
     // ✅ Register user
-    socket.on("loginUser", (userId) => {
+    socket.on("loginUser", async (userId) => {
       onlineUsers.set(userId, socket.id);
       console.log("User registered:", userId);
     });
@@ -60,4 +98,4 @@ function getIo() {
   return io;
 }
 
-module.exports = { initSocket, getIo,onlineDrivers,onlineUsers };
+module.exports = { initSocket, getIo, onlineDrivers, onlineUsers };

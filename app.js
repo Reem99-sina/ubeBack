@@ -23,10 +23,6 @@ const server = http.createServer(app);
 
 const io = initSocket(server);
 
-io.on("connection", (socket) => {
-  socket.data.email = null;
-
-});
 
 const PORT = process.env.PORT || 1200;
 server.listen(PORT, () => console.log(`Server listening on ${PORT}`));

@@ -19,10 +19,13 @@ function initSocket(server) {
         const id = payload || {};
         if (!id) return;
 
-        const user = await User.findByIdAndUpdate(
+        await User.findByIdAndUpdate(
           id,
-          { active_status: true },
-          { new: true }, // 👈 return updated user
+          {
+            $addToSet: { sockets: socket.id },
+            active_status: true,
+          },
+          { new: true },
         );
         io.emit("userStatusChanged", { user });
       } catch (err) {
@@ -37,9 +40,13 @@ function initSocket(server) {
         const id = payload || {};
 
         if (!id) return;
-        const user = await User.findOneAndUpdate(
-          { _id: id },
-          { active_status: false },
+
+        const user = await User.findByIdAndUpdate(
+          id,
+          {
+            $pull: { sockets: socket.id },
+            active_status: false,
+          },
           { new: true },
         );
         io.emit("userStatusChanged", { user });

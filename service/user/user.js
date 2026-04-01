@@ -123,20 +123,20 @@ const updateDriver = async (req, res) => {
   const { email, driver_id } = req.body;
 
   const io = getIo();
-  const driverSocketId = onlineDrivers.get(driver_id);
-
-  if (!driverSocketId) {
-    return res.status(404).json({ message: "Driver not online" });
+  const driver = await User.findOne({ _id: driver_id, role: "driver" });
+  if (!driver) {
+    return res.status(404).json({ message: "Driver not found" });
   }
   const UserEmail = await User.findOneAndUpdate(
-    { email: email,role:"user" },
+    { email: email, role: "user" },
     { driver_id: driver_id },
   );
-
-  io.to(driverSocketId).emit("rideRequest", {
-    userId: UserEmail._id,
-    // pickup,
-    destination: UserEmail.destination,
+  driver.sockets.forEach((id) => {
+    io.to(id).emit("rideRequest", {
+      userId: UserEmail._id,
+      // pickup,
+      destination: UserEmail.destination,
+    });
   });
 
   if (UserEmail) {

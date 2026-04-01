@@ -7,7 +7,7 @@ const routerTrip = require("./router/trip.router");
 
 
 const { User } = require("./module/user");
-const { initSocket } = require("./socket");
+const { initSocket, onlineDrivers, onlineUsers } = require("./socket");
 
 require("dotenv").config();
 
@@ -23,6 +23,6 @@ const server = http.createServer(app);
 
 const io = initSocket(server);
 
-
+console.log("Server is running...",onlineDrivers,onlineUsers);
 const PORT = process.env.PORT || 1200;
 server.listen(PORT, () => console.log(`Server listening on ${PORT}`));

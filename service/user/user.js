@@ -87,6 +87,9 @@ const loginUser = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
+    // const io = getIo();
+    // io.emit('login', user._id);
+    // io.emit('loginDriver', user._id);
 
     res.json({ message: "Login successful", token, user });
   } catch (err) {

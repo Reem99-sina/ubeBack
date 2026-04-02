@@ -32,18 +32,8 @@ const createTrip = async (req, res) => {
       paymentMethod,
       pickup: user?.currentLocation,
       destination: user?.destination,
+      status: "pending",
     });
-
-    // mark driver as busy / set destination
-    try {
-      await Driver.findByIdAndUpdate(driverId, {
-        destination: user?.destination,
-        active_status: true,
-      });
-    } catch (e) {
-      // non-fatal: log and continue
-      console.warn("Failed to set driver status:", e.message);
-    }
 
     // return the trip object directly so frontend `res.data` === trip
     return res.status(201).json(trip);

@@ -23,6 +23,7 @@
     "nodejs-nodemailer-outlook": "^1.2.4",
     "nodemailer": "^7.0.11",
     "socket.io": "^4.8.3",
+    "stripe": "^21.0.1",
     "textflow.js": "^0.1.4",
     "twilio": "^5.13.0"
   }

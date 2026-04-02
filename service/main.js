@@ -35,7 +35,17 @@ router.post(
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // وصل الكارت للـ Stripe Customer
+    if (!user.stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+      });
+
+      await User.updateOne({ _id: userId }, { stripeCustomerId: customer.id });
+
+      user.stripeCustomerId = customer.id;
+    }
+
+    // ✅ attach
     await stripe.paymentMethods.attach(paymentMethodId, {
       customer: user.stripeCustomerId,
     });
@@ -47,33 +57,32 @@ router.post(
       isDefault: true,
     };
 
-    // خطوة واحدة لتحديث Default للكروت السابقة
-    // وتحديث الكارت الموجود إذا موجود
-    const result = await User.updateOne(
+    // ✅ خلي كل الكروت false
+    await User.updateOne(
       { _id: userId },
-      {
-        $set: {
-          "paymentMethods.$[elem].isDefault": false, // كل الكروت السابقة غير Default
-          "paymentMethods.$[target]": newCard, // تحديث الكارت الموجود
-        },
-      },
-      {
-        arrayFilters: [
-          { "elem.id": { $ne: paymentMethodId } }, // لكل الكروت الغير المستهدفة
-          { "target.id": paymentMethodId }, // الكارت اللي هيتحدث
-        ],
-      },
+      { $set: { "paymentMethods.$[].isDefault": false } },
     );
 
-    // لو الكارت مش موجود → أضف جديد
-    if (result.matchedCount === 0 || result.modifiedCount === 0) {
+    // ✅ check لو الكارت موجود
+    const exists = await User.findOne({
+      _id: userId,
+      "paymentMethods.id": paymentMethodId,
+    });
+
+    if (exists) {
+      // update
+      await User.updateOne(
+        { _id: userId, "paymentMethods.id": paymentMethodId },
+        { $set: { "paymentMethods.$": newCard } },
+      );
+    } else {
+      // add
       await User.updateOne(
         { _id: userId },
         { $push: { paymentMethods: newCard } },
       );
     }
 
-    // جلب الكروت بعد التحديث
     const updatedUser = await User.findById(userId).select("paymentMethods");
 
     res.json({ success: true, paymentMethods: updatedUser.paymentMethods });

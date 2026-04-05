@@ -5,39 +5,41 @@ const { Driver } = require("../../module/driver");
 const createTrip = async (req, res) => {
   try {
     const { userId, driverId, paymentMethod } = req.body;
+
     if (!userId || !driverId || !paymentMethod) {
       return res.status(400).json({ message: "missing required fields" });
     }
+
     const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "user not found" });
 
-    // If paymentMethod is 'card' ensure the user has a saved card
-    if (paymentMethod === "card") {
-      if (!user) return res.status(404).json({ message: "user not found" });
-      if (!user.creditCard) {
-        return res.status(400).json({
-          message:
-            "no saved card for this user, please add a card or choose cash",
-        });
-      }
-    }
-
-    // ensure driver exists (now a separate collection)
-    const driverExists = await Driver.findById(driverId);
+    const driverExists = await User.findById(driverId);
     if (!driverExists)
       return res.status(404).json({ message: "driver not found" });
+
+    let savedPayment = user.paymentMethods.find(
+      (pm) => pm._id == paymentMethod.id,
+    );
+
+    if (!savedPayment) {
+      return res.status(400).json({
+        message:
+          "This card is not saved for the user. Please add it first or choose cash",
+      });
+    }
 
     const trip = await Trip.create({
       userId,
       driverId,
-      paymentMethod,
-      pickup: user?.currentLocation,
-      destination: user?.destination,
+      paymentMethod: savedPayment,
+      pickup: user.currentLocation,
+      destination: user.destination,
       status: "pending",
     });
 
-    // return the trip object directly so frontend `res.data` === trip
     return res.status(201).json(trip);
   } catch (error) {
+    console.error(error);
     return res
       .status(500)
       .json({ message: "server error", error: error.message });
@@ -119,7 +121,7 @@ const updateTripStatus = async (req, res) => {
               },
             },
           },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
+          { upsert: true, new: true, setDefaultsOnInsert: true },
         );
       } catch (e) {
         console.warn("Failed to credit driver wallet:", e.message);
@@ -173,7 +175,10 @@ const confirmTripByDriver = async (req, res) => {
 const getTripByUserIdAndDriverId = async (req, res) => {
   try {
     const { userId, driverId } = req.params;
-    if (!userId || !driverId) return res.status(400).json({ message: "User id and driver id are required" });
+    if (!userId || !driverId)
+      return res
+        .status(400)
+        .json({ message: "User id and driver id are required" });
 
     const trip = await Trip.findOne({ userId, driverId })
       .populate("userId", "-password")
@@ -187,12 +192,11 @@ const getTripByUserIdAndDriverId = async (req, res) => {
   }
 };
 
-
 module.exports = {
   createTrip,
   getTripById,
   updateTripStatus,
   confirmTripByDriver,
   getTripByDriverId,
-  getTripByUserIdAndDriverId
+  getTripByUserIdAndDriverId,
 };

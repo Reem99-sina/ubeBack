@@ -21,8 +21,7 @@ function initSocket(server) {
 
         await User.findByIdAndUpdate(
           id,
-          {
-            $addToSet: { sockets: socket.id },
+          {  sockets: socket.id ,
             active_status: true,
           },
           { new: true },
@@ -44,7 +43,7 @@ function initSocket(server) {
         const user = await User.findByIdAndUpdate(
           id,
           {
-            $pull: { sockets: socket.id },
+          sockets: socket.id ,
             active_status: false,
           },
           { new: true },
@@ -64,6 +63,7 @@ function initSocket(server) {
 
     // ✅ Register driver
     socket.on("loginDriver", (driverId) => {
+      
       onlineDrivers.set(driverId, socket.id);
       console.log("Driver registered:", driverId);
     });

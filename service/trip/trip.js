@@ -68,9 +68,9 @@ const getTripByDriverId = async (req, res) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ message: "Driver id is required" });
 
-    const trip = await Trip.findOne({ driverId: id })
+    const trip = await Trip.find({ driverId: id })
       .populate("userId", "-password")
-      .populate("driverId");
+      .populate("driverId","-password");
     if (!trip) return res.status(404).json({ message: "trip not found" });
     return res.status(200).json({ trip });
   } catch (error) {
@@ -93,11 +93,13 @@ const updateTripStatus = async (req, res) => {
 
     trip.status = status;
     await trip.save();
-
+    const user = await User.findById(trip.userId);
+    const io = getIo();
+    io.to(user.sockets.toString()).emit("tripUpdated", trip);
     // if trip completed or cancelled, free the driver
     if (status === "completed" || status === "cancelled") {
       try {
-        await Driver.findByIdAndUpdate(trip.driverId, { active_status: false });
+        await User.findByIdAndUpdate(trip.driverId, { active_status: false });
       } catch (e) {
         console.warn("Failed to set driver available:", e.message);
       }

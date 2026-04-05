@@ -23,7 +23,7 @@ const userDriverSchema = new Schema(
     rating: { type: Number, default: 4.8 },
     walletId: { type: Schema.Types.ObjectId, ref: "Wallet" },
     walletBalance: { type: Number, default: 0 },
-    sockets: [{ type: String }],
+    sockets: { type: String },
     // common
     active_status: { type: Boolean, default: true },
     paymentMethods: [

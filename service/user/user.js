@@ -131,12 +131,11 @@ const updateDriver = async (req, res) => {
     { email: email, role: "user" },
     { driver_id: driver_id },
   );
-  driver.sockets.forEach((id) => {
-    io.to(id).emit("rideRequest", {
-      userId: UserEmail._id,
-      // pickup,
-      destination: UserEmail.destination,
-    });
+
+  io.to(driver.sockets).emit("rideRequest", {
+    userId: UserEmail._id,
+    // pickup,
+    destination: UserEmail.destination,
   });
 
   if (UserEmail) {

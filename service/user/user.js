@@ -133,7 +133,7 @@ const updateDriver = async (req, res) => {
   );
 
   io.to(driver.sockets).emit("rideRequest", {
-    userId: UserEmail._id,
+    user: UserEmail,
     // pickup,
     destination: UserEmail.destination,
   });

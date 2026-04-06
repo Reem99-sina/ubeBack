@@ -1,6 +1,7 @@
 const { Trip } = require("../../module/trip");
 const { User } = require("../../module/user");
 const { Driver } = require("../../module/driver");
+const { getIo } = require("../../socket");
 
 const createTrip = async (req, res) => {
   try {

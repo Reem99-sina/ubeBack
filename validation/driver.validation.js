@@ -29,8 +29,9 @@ module.exports.createDriverValidation = {
 
 module.exports.updateDriverValidation = {
   body: joi.object({
-    driverId: joi.string().required().messages({
-      "string.empty": "driverId is required",
+    driverId: joi.string().optional().messages({
+      "string.base": "driverId must be a string",
+      "string.empty": "driverId cannot be empty",
     }),
     vehicle: joi.string().optional().messages({
       "string.base": "Vehicle must be a string",

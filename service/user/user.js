@@ -271,7 +271,7 @@ const updateUser = async (req, res) => {
       updateFields.currentLocation = currentLocation;
     if (destination !== undefined) updateFields.destination = destination;
     if (time !== undefined) updateFields.time = time;
-
+    updateFields.driver_id = null;
     if (Object.keys(updateFields).length > 0) {
       await User.findOneAndUpdate({ email: email }, updateFields);
     }
